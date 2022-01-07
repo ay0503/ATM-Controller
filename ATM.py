@@ -14,9 +14,11 @@ class PIN(object):
     # str
     self.pin_number = hashlib.sha256(pin_number.encode()).hexdigest()
 
+  # PIN identity
   def __eq__(self, other):
     return self.pin_number == other.pin_number
 
+# card object contains number
 class Card(object):
   def __init__(self, num):
     self.num = num
@@ -50,6 +52,7 @@ class Bank(object):
     self.accounts = dict()
     self.ATMs = dict()
 
+  # creates new account in Bank database
   def new_account(self, name, card_number, number, pin, balance):
     card = Card(card_number)
     account = Account(name, card_number, number, pin, balance)
@@ -62,11 +65,11 @@ class ATM(object):
   def __init__(self, bank):
     # dictionary of sets of accounts based on card number
     self.bank = bank
+    self.cash_bin = 0
     bank.ATMs[self] = bank.ATMs.get(self, self.cash_bin)
     self.card = None
     self.in_account = False
     self.card_check()
-    self.cash_bin = 0
 
   # checks card number against accounts
   def card_check(self):
@@ -99,6 +102,7 @@ class ATM(object):
       self.in_account = True
       self.operations(account)
 
+  # runs deposit, withdrawl, transfer opeations
   def operations(self, account):
     print(f"Hi {account.name}. Account Number: {account.id}, Current Balance: ${account.balance}")
     op_type = input("Deposit / Withdrawl / Transfer : ")
@@ -126,11 +130,13 @@ class ATM(object):
         print("Account will now close. Thank You")
         self.__init__(self.bank)
 
+  # deposits amount of cash to account
   def deposit(self, account, amount):
     account.balance += amount
     self.cash_bin += amount
     return Receipt("Deposit", amount, account)
     
+  # withdraws amount of cash from account
   def withdraw(self, account, amount):
     if account.balance < amount:
       print("Not enough funds in account.")
@@ -139,7 +145,8 @@ class ATM(object):
       account.balance -= amount
       self.cash_bin -= amount
       return Receipt("Withdrawl", amount, account)
-  
+      
+  # transfers amount of cash from account to target
   def transfer(self, account, account_num, amount):
     if account.balance < amount:
       print("Not enough funds in account.")
