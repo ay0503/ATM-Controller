@@ -1,4 +1,4 @@
-import math, hashlib
+import hashlib
 
 # receipt prints transaction type and amount
 class Receipt(object):
@@ -47,23 +47,26 @@ class Account(object):
 class Bank(object):
   def __init__(self):
     self.cards = dict()
-    self.accounts = set()
+    self.accounts = dict()
+    self.ATMs = dict()
 
   def new_account(self, name, card_number, number, pin, balance):
     card = Card(card_number)
     account = Account(name, card_number, number, pin, balance)
     self.cards[card] = self.cards.get(card, set())
     self.cards[card].add(account)
-    self.accounts.add(account) 
+    self.accounts[number] = self.accounts.get(number, account)
 
 class ATM(object):
 
   def __init__(self, bank):
     # dictionary of sets of accounts based on card number
     self.bank = bank
+    bank.ATMs[self] = bank.ATMs.get(self, self.cash_bin)
     self.card = None
     self.in_account = False
     self.card_check()
+    self.cash_bin = 0
 
   # checks card number against accounts
   def card_check(self):
@@ -97,6 +100,7 @@ class ATM(object):
       self.operations(account)
 
   def operations(self, account):
+    print(f"Hi {account.name}. Account Number: {account.id}, Current Balance: ${account.balance}")
     op_type = input("Deposit / Withdrawl / Transfer : ")
     match op_type:
       case "Deposit":
@@ -107,20 +111,24 @@ class ATM(object):
         amount = int(input("How much would you like to withdraw: $"))
         self.withdraw(account, amount)
       case "Transfer":
-        account_num = int(input("Target Transfer Account Number: $"))
-        while account_num in self.accounts:
-          account_num = int(input("Target Transfer Account Number: "))
-        amount = int(input("How much would you like to transfer: "))
+        account_num = int(input("Target Transfer Account Number: "))
+        while account_num not in self.bank.accounts:
+          account_num = int(input("Invalid Account Number. Please Try Again. "))
+        amount = int(input("How much would you like to transfer: $"))
         self.transfer(account, account_num, amount)
+      case _: 
+        print("Invalid Operation")
+        self.operations(account)
     match input("Anything Else? (Y/N) "):
       case "Y":
         self.operations(account)
       case "N":
         print("Account will now close. Thank You")
-        self.__init__(self.accounts)
+        self.__init__(self.bank)
 
   def deposit(self, account, amount):
     account.balance += amount
+    self.cash_bin += amount
     return Receipt("Deposit", amount, account)
     
   def withdraw(self, account, amount):
@@ -129,15 +137,16 @@ class ATM(object):
       self.operations(account)
     else:
       account.balance -= amount
+      self.cash_bin -= amount
       return Receipt("Withdrawl", amount, account)
   
   def transfer(self, account, account_num, amount):
-    account.balance -= amount
-    target = self.accounts[account_num]
-    target.balance += amount
-    return Receipt("Transfer", amount, account)
+    if account.balance < amount:
+      print("Not enough funds in account.")
+      self.operations(account)
+    else:
+      account.balance -= amount
+      target = self.bank.accounts[account_num]
+      target.balance += amount
+      return Receipt("Transfer", amount, account)
 
-bank = Bank()
-bank.new_account("Andrew", 1234, 67891123, "2000", 100)
-bank.new_account("Andrew", 1234, 67891124, "2000", 1000)
-ATM(bank)
