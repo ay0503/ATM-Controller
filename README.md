@@ -1,8 +1,18 @@
-Simple ATM Controller
+# Simple ATM Controller
 
-- Used Python 3.10.1
+- Requires Python 3.10.1 (Match, Casing)
 - Bank, Card, Opaque PIN, Receipt implmentation
-- Additional Features: PIN Locking, Transfer, Receipts
+- Basic Features: 
+    - Card Insertion
+    - Account Selection
+    - PIN Validation
+    - Deposit Withdrawl Operations
+- Additional Features: 
+    - PIN Locking
+    - Transfer
+    - Receipts
+- run Test.py with the test command line below.
+
 
 Test Case
 
